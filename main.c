@@ -4,8 +4,6 @@
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t mutex_main = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond_main = PTHREAD_COND_INITIALIZER;
 typedef struct thread_data {
     int lenA;
     int lenB;
@@ -118,7 +116,6 @@ void merge_sort_M(void *a){
     printf("\n");
 
     done++;
-    pthread_cond_signal(&cond_main);
 }
 
 int main(int argc, char *argv[]) {
@@ -150,18 +147,16 @@ int main(int argc, char *argv[]) {
         pthread_create(&idB, NULL, (void *)merge_sort_B, &tData);
         pthread_create(&idM, NULL, (void *)merge_sort_M, &tData);
 
-        pthread_mutex_lock(&mutex_main);
-
-        while (done < 3)
-            pthread_cond_wait(&cond_main, &mutex_main);
+        pthread_join(idM, NULL);
 
         done = 0;
         free(tData.A);
         free(tData.B);
         free(tData.sorted);
-        pthread_mutex_unlock(&mutex_main);
 	}
 	if (line)
 		free(line);
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&cond);
 	return EXIT_SUCCESS;
 }
